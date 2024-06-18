@@ -337,7 +337,7 @@ Setting this to false may pose risks; if a house is abandoned and contains a lar
 -- Base: sqm,rent,sqm+rent
 housePriceRentMultiplier = 0.0
 housePriceEachSQM = 1000
-houseRentPeriod = "never"
+houseRentPeriod = "weekly"
 houseRentRate = 1.0
 houseOwnedByAccount = false
 houseBuyLevel = 300
@@ -414,7 +414,7 @@ resetSessionsOnStartup = false
 -- NOTE: disableLegacyRaids: set to true to disable legacy XML raids
 allowChangeOutfit = true
 toggleMountInProtectionZone = true
-freePremium = false
+freePremium = true
 kickIdlePlayerAfterMinutes = 15
 maxMessageBuffer = 4
 emoteSpells = false
