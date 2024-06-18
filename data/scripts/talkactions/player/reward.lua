@@ -1,20 +1,23 @@
 local config = {
 	items = {
-		{ id = 35284, charges = 64400 },
-		{ id = 35279, charges = 64400 },
-		{ id = 35281, charges = 64400 },
-		{ id = 35283, charges = 64400 },
-		{ id = 35282, charges = 64400 },
-		{ id = 35280, charges = 64400 },
-		{ id = 44066, charges = 64400 },
+		{ id = 35284, charges = 64400 }, --durable exercise wand
+		{ id = 35279, charges = 64400 }, --durable exercise sword
+		{ id = 35281, charges = 64400 }, --durable exercise club
+		{ id = 35283, charges = 64400 }, --durable exercise rod
+		{ id = 35282, charges = 64400 }, --durable exercise bow
+		{ id = 35280, charges = 64400 }, --durable exercise axe
+		{ id = 44066, charges = 64400 }, --durable exercise shield
 	},
 	storage = tonumber(Storage.PlayerWeaponReward), -- storage key, player can only win once
 }
 
+-- Ordenar os itens por ID
+table.sort(config.items, function(a, b) return a.id < b.id end)
+
 local function sendExerciseRewardModal(player)
 	local window = ModalWindow({
 		title = "Exercise Reward",
-		message = "choose a item",
+		message = "choose an item",
 	})
 	for _, it in pairs(config.items) do
 		local iType = ItemType(it.id)
@@ -31,12 +34,12 @@ local function sendExerciseRewardModal(player)
 					if item then
 						item:setActionId(IMMOVABLE_ACTION_ID)
 						item:setAttribute(ITEM_ATTRIBUTE_STORE, systemTime())
-						item:setAttribute(ITEM_ATTRIBUTE_DESCRIPTION, string.format("You won this exercise weapon as a reward to be a %s player. Use it in a dummy!\nHave a nice game..", configManager.getString(configKeys.SERVER_NAME)))
+						item:setAttribute(ITEM_ATTRIBUTE_DESCRIPTION, string.format("You won this exercise weapon as a reward to be a %s player. Use it in a dummy!\nHave a nice game...", configManager.getString(configKeys.SERVER_NAME)))
 					else
 						player:sendTextMessage(MESSAGE_LOOK, "You need to have capacity and empty slots to receive.")
 						return
 					end
-					player:sendTextMessage(MESSAGE_LOOK, string.format("Congratulations, you received a %s with %i charges in your store inbox.", iType:getName(), it.charges))
+					player:sendTextMessage(MESSAGE_LOOK, string.format("Congratulations! You received a %s with %i charges in your store inbox.", iType:getName(), it.charges))
 					player:setStorageValue(config.storage, 1)
 				else
 					player:sendTextMessage(MESSAGE_LOOK, "You need to have capacity and empty slots to receive.")
@@ -53,6 +56,11 @@ end
 
 local exerciseRewardModal = TalkAction("!reward")
 function exerciseRewardModal.onSay(player, words, param)
+	if player:getLevel() < 20 then
+		player:sendTextMessage(MESSAGE_LOOK, "You need to be level 20 to receive your exercise weapon reward!")
+		return true
+	end
+
 	if not configManager.getBoolean(configKeys.TOGGLE_RECEIVE_REWARD) or player:getTown():getId() < TOWNS_LIST.AB_DENDRIEL then
 		return true
 	end
