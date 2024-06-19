@@ -36,13 +36,13 @@ local function sendExerciseRewardModal(player)
 						item:setAttribute(ITEM_ATTRIBUTE_STORE, systemTime())
 						item:setAttribute(ITEM_ATTRIBUTE_DESCRIPTION, string.format("You won this exercise weapon as a reward to be a %s player. Use it in a dummy!\nHave a nice game...", configManager.getString(configKeys.SERVER_NAME)))
 					else
-						player:sendTextMessage(MESSAGE_LOOK, "You need to have capacity and empty slots to receive.")
+						player:sendTextMessage(MESSAGE_LOOK, "You need to have capacity and empty slots to receive the reward.")
 						return
 					end
 					player:sendTextMessage(MESSAGE_LOOK, string.format("Congratulations! You received a %s with %i charges in your store inbox.", iType:getName(), it.charges))
 					player:setStorageValue(config.storage, 1)
 				else
-					player:sendTextMessage(MESSAGE_LOOK, "You need to have capacity and empty slots to receive.")
+					player:sendTextMessage(MESSAGE_LOOK, "You need to have capacity and empty slots to receive the reward.")
 				end
 			end)
 		end
@@ -56,18 +56,20 @@ end
 
 local exerciseRewardModal = TalkAction("!reward")
 function exerciseRewardModal.onSay(player, words, param)
+	if not configManager.getBoolean(configKeys.TOGGLE_RECEIVE_REWARD) or player:getTown():getId() < TOWNS_LIST.AB_DENDRIEL then
+		return true
+	end
+
 	if player:getLevel() < 20 then
 		player:sendTextMessage(MESSAGE_LOOK, "You need to be level 20 to receive your exercise weapon reward!")
 		return true
 	end
 
-	if not configManager.getBoolean(configKeys.TOGGLE_RECEIVE_REWARD) or player:getTown():getId() < TOWNS_LIST.AB_DENDRIEL then
-		return true
-	end
 	if player:getStorageValue(config.storage) > 0 then
 		player:sendTextMessage(MESSAGE_LOOK, "You already received your exercise weapon reward!")
 		return true
 	end
+
 	sendExerciseRewardModal(player)
 	return true
 end
