@@ -89,8 +89,9 @@ function vocationReward.onUse(player, item, fromPosition, itemEx, toPosition)
 	end
 	-- Check if enough free slots
 	if player:getFreeBackpackSlots() < 1 then
-		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You have found a " .. getItemName(reward.container) .. ". There is no room.")
-		return true
+		player:addItem(2854, 1) -- Sem backpack ou slots livres, então devemos adicionar uma nova backpack
+		--player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "You have found a " .. getItemName(reward.container) .. ". There is no room.")
+		--return true
 	end
 	-- Create reward container
 	local container = Game.createItem(reward.container)
