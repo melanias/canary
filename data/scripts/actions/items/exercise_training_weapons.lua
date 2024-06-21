@@ -110,6 +110,9 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		player:addSkillTries(exerciseWeaponsTable[weaponId].skill, 7 * rate)
 	end
 
+	local testSkillRate = getRateFromTable(skillsStages, exerciseWeaponsTable[weaponId].skill, configManager.getNumber(configKeys.RATE_SKILL))
+	print("Rate : ", testSkillRate)
+
 	weapon:setAttribute(ITEM_ATTRIBUTE_CHARGES, (weaponCharges - 1))
 	tilePosition:sendMagicEffect(CONST_ME_HITAREA)
 
@@ -125,6 +128,11 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 			leaveExerciseTraining(playerId)
 			return false
 		end
+	else
+		print("Skill : ", player:getSkillLevel(exerciseWeaponsTable[weaponId].skill))
+		print("Skill efetiva : ", player:getEffectiveSkillLevel(exerciseWeaponsTable[weaponId].skill))
+		print("Porcentagem treinada da skill : ", player:getSkillPercent(exerciseWeaponsTable[weaponId].skill))
+		print("Skill tries : ", player:getSkillTries(exerciseWeaponsTable[weaponId].skill))
 	end
 
 	local vocation = player:getVocation()
