@@ -37,6 +37,19 @@ local exerciseWeaponsTable = {
 
 local dummies = Game.getDummies()
 
+local function getNextExerciseWeapon(player)
+	local weaponFound = nil
+	for weaponId, weapon in pairs(exerciseWeaponsTable) do
+		weaponFound = player:getItemById(weaponId, true)
+
+		if weaponFound or (weaponFound:isItem() or weaponFound:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
+			break
+		end
+	end
+
+	return weaponFound
+end
+
 local function leaveExerciseTraining(playerId)
 	if _G.OnExerciseTraining[playerId] then
 		stopEvent(_G.OnExerciseTraining[playerId].event)
@@ -90,9 +103,14 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 	local weaponCharges = weapon:getAttribute(ITEM_ATTRIBUTE_CHARGES)
 	if not weaponCharges or weaponCharges <= 0 then
 		weapon:remove(1) -- ??
-		weapon = player:getItemById(weaponId, true)
-    	if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
-			player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
+		
+		-- Usar a próxima exercise weapon que for encontrada no player
+		weapon = getNextExerciseWeapon(player)
+		--Debug
+		print("Exercise weapon found 1 : ", weapon:getName())
+
+		if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
 			leaveExerciseTraining(playerId)
 			return false
 		end
@@ -110,8 +128,9 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		player:addSkillTries(exerciseWeaponsTable[weaponId].skill, 7 * rate)
 	end
 
-	local testSkillRate = getRateFromTable(skillsStages, exerciseWeaponsTable[weaponId].skill, configManager.getNumber(configKeys.RATE_SKILL))
-	print("Rate : ", testSkillRate)
+	--Debug only
+	--local testSkillRate = getRateFromTable(skillsStages, exerciseWeaponsTable[weaponId].skill, configManager.getNumber(configKeys.RATE_SKILL))
+	--print("Rate : ", testSkillRate)
 
 	weapon:setAttribute(ITEM_ATTRIBUTE_CHARGES, (weaponCharges - 1))
 	tilePosition:sendMagicEffect(CONST_ME_HITAREA)
@@ -122,9 +141,14 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 
 	if weapon:getAttribute(ITEM_ATTRIBUTE_CHARGES) <= 0 then
 		weapon:remove(1)
-		weapon = player:getItemById(weaponId, true)
+		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
+		
+		-- Usar a próxima exercise weapon que for encontrada no player
+		weapon = getNextExerciseWeapon(player)
+		--Debug
+		print("Exercise weapon found 2 : ", weapon:getName())
+
 		if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
-			player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
 			leaveExerciseTraining(playerId)
 			return false
 		end
