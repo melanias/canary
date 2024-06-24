@@ -1,7 +1,7 @@
 local exhaustionTime = 10
 
 local exerciseWeaponsTable = {
-	-- MELE
+	-- MELEE
 	[28540] = { skill = SKILL_SWORD },
 	[28552] = { skill = SKILL_SWORD },
 	[35279] = { skill = SKILL_SWORD },
@@ -120,12 +120,24 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		return false
 	end
 
-	local rate = dummies[dummyId] / 100
+	local dummyRate = dummies[dummyId] / 100
 	local isMagic = exerciseWeaponsTable[weaponId].skill == SKILL_MAGLEVEL
 	if isMagic then
-		player:addManaSpent(500 * rate)
+		--500 was the previous value here
+		--600 is the correct value, as reported at https://tibia.fandom.com/wiki/Exercise_Weapons
+		player:addManaSpent(600 * dummyRate)
 	else
-		player:addSkillTries(exerciseWeaponsTable[weaponId].skill, 7 * rate)
+		--7 was the previous value here
+		--7.2 ou 3.6 (if weapon is a bow) is the correct value, as reported at https://tibia.fandom.com/wiki/Exercise_Weapons
+		
+		--OLD
+		--player:addSkillTries(exerciseWeaponsTable[weaponId].skill, 7 * dummyRate)
+		
+		local meleeOrDistanceSkill = (exerciseWeaponsTable[weaponId].skill == SKILL_DISTANCE and 3.6) or 7.2
+		player:addSkillTries(exerciseWeaponsTable[weaponId].skill, meleeOrDistanceSkill * dummyRate)
+
+		--Usar o código abaixo pra testar quantos tries faltam do skill 100 pro 101 em 100%, melee versus distance (ver se é a mesma quantia)
+		--target:addSkillTries(skillId, target:getVocation():getRequiredSkillTries(skillId, target:getSkillLevel(skillId) + 1) - target:getSkillTries(skillId), true)
 	end
 
 	--Debug only
