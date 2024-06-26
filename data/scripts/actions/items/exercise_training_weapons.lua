@@ -37,17 +37,8 @@ local exerciseWeaponsTable = {
 
 local dummies = Game.getDummies()
 
-local function getNextExerciseWeapon(player)
-	local weaponFound = nil
-	for weaponId, weapon in pairs(exerciseWeaponsTable) do
-		weaponFound = player:getItemById(weaponId, true)
-
-		if weaponFound or (weaponFound:isItem() or weaponFound:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
-			break
-		end
-	end
-
-	return weaponFound
+local function round(n)
+	return math.floor((math.floor(n*2) + 1)/2)
 end
 
 local function leaveExerciseTraining(playerId)
@@ -105,11 +96,6 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		weapon:remove(1) -- ??
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
 		
-		-- Usar a próxima exercise weapon que for encontrada no player
-		weapon = getNextExerciseWeapon(player)
-		--Debug
-		print("Exercise weapon found 1 : ", weapon:getName())
-
 		if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
 			leaveExerciseTraining(playerId)
 			return false
@@ -120,30 +106,27 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		return false
 	end
 
+	local skillId = exerciseWeaponsTable[weaponId].skill
 	local dummyRate = dummies[dummyId] / 100
-	local isMagic = exerciseWeaponsTable[weaponId].skill == SKILL_MAGLEVEL
+	local isMagic = skillId == SKILL_MAGLEVEL
 	if isMagic then
-		--500 was the previous value here
-		--600 is the correct value, as reported at https://tibia.fandom.com/wiki/Exercise_Weapons
 		player:addManaSpent(600 * dummyRate)
-	else
-		--7 was the previous value here
-		--7.2 ou 3.6 (if weapon is a bow) is the correct value, as reported at https://tibia.fandom.com/wiki/Exercise_Weapons
-		
-		--OLD
-		--player:addSkillTries(exerciseWeaponsTable[weaponId].skill, 7 * dummyRate)
-		
-		local meleeOrDistanceSkill = (exerciseWeaponsTable[weaponId].skill == SKILL_DISTANCE and 3.6) or 7.2
-		player:addSkillTries(exerciseWeaponsTable[weaponId].skill, meleeOrDistanceSkill * dummyRate)
 
-		--Usar o código abaixo pra testar quantos tries faltam do skill 100 pro 101 em 100%, melee versus distance (ver se é a mesma quantia)
-		--target:addSkillTries(skillId, target:getVocation():getRequiredSkillTries(skillId, target:getSkillLevel(skillId) + 1) - target:getSkillTries(skillId), true)
+		--Exibir status do treino
+		local manaPercent = string.format("%.2f", ((player:getManaSpent() * 100) / player:getVocation():getRequiredManaSpent(player:getMagicLevel() + 1)))
+		local trainingInfo = "Current magic level: ".. player:getMagicLevel() .." with ".. manaPercent .."% to ".. player:getMagicLevel() + 1 .."."
+		trainingInfo = trainingInfo .."\n ".. player:getManaSpent() .." attempts of ".. player:getVocation():getRequiredManaSpent(player:getMagicLevel() + 1) .." to magic level ".. player:getMagicLevel() + 1 .."."
+		player:sendTextMessage(MESSAGE_FAILURE, trainingInfo)
+	else
+		player:addSkillTries(skillId, math.floor((7.2 + 0.5) * dummyRate))
+
+		--Exibir status do treino
+		local trainingInfo = "Current skill level: ".. player:getSkillLevel(skillId) .." with ".. player:getSkillPercent(skillId) .."% to ".. player:getSkillLevel(skillId) + 1 .."."
+		trainingInfo = trainingInfo .."\n ".. player:getSkillTries(skillId) .." / ".. player:getVocation():getRequiredSkillTries(skillId, player:getSkillLevel(skillId) + 1) .." to raise the skill to ".. player:getSkillLevel(skillId) + 1 .."."
+		player:sendTextMessage(MESSAGE_FAILURE, trainingInfo)
 	end
 
-	--Debug only
-	--local testSkillRate = getRateFromTable(skillsStages, exerciseWeaponsTable[weaponId].skill, configManager.getNumber(configKeys.RATE_SKILL))
-	--print("Rate : ", testSkillRate)
-
+	--Remover uma carga da exercise weapon e exibir o efeito
 	weapon:setAttribute(ITEM_ATTRIBUTE_CHARGES, (weaponCharges - 1))
 	tilePosition:sendMagicEffect(CONST_ME_HITAREA)
 
@@ -155,20 +138,10 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		weapon:remove(1)
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
 		
-		-- Usar a próxima exercise weapon que for encontrada no player
-		weapon = getNextExerciseWeapon(player)
-		--Debug
-		print("Exercise weapon found 2 : ", weapon:getName())
-
 		if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
 			leaveExerciseTraining(playerId)
 			return false
 		end
-	else
-		print("Skill : ", player:getSkillLevel(exerciseWeaponsTable[weaponId].skill))
-		print("Skill efetiva : ", player:getEffectiveSkillLevel(exerciseWeaponsTable[weaponId].skill))
-		print("Porcentagem treinada da skill : ", player:getSkillPercent(exerciseWeaponsTable[weaponId].skill))
-		print("Skill tries : ", player:getSkillTries(exerciseWeaponsTable[weaponId].skill))
 	end
 
 	local vocation = player:getVocation()
