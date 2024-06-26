@@ -37,8 +37,19 @@ local exerciseWeaponsTable = {
 
 local dummies = Game.getDummies()
 
-local function round(n)
-	return math.floor((math.floor(n*2) + 1)/2)
+local function getNextExerciseWeapon(player) 
+	local nextWeapon = nil
+
+	for id, wp in pairs(exerciseWeaponsTable) do
+		nextWeapon = player:getItemById(id, true)
+		
+		if nextWeapon then
+			--print(nextWeapon:getId() .." + ".. nextWeapon:getName())
+			break
+		end
+	end
+
+	return nextWeapon
 end
 
 local function leaveExerciseTraining(playerId)
@@ -96,9 +107,12 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		weapon:remove(1) -- ??
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
 		
+		weapon = getNextExerciseWeapon(player)
 		if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
 			leaveExerciseTraining(playerId)
 			return false
+		else 
+			weaponId = weapon:getId()
 		end
 	end
 
@@ -137,10 +151,13 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 	if weapon:getAttribute(ITEM_ATTRIBUTE_CHARGES) <= 0 then
 		weapon:remove(1)
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Your training weapon has disappeared.")
-		
+
+		weapon = getNextExerciseWeapon(player)
 		if not weapon or (not weapon:isItem() or not weapon:hasAttribute(ITEM_ATTRIBUTE_CHARGES)) then
 			leaveExerciseTraining(playerId)
 			return false
+		else 
+			weaponId = weapon:getId()
 		end
 	end
 
