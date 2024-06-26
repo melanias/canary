@@ -116,6 +116,12 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		end
 	end
 
+	if not exerciseWeaponsTable[weaponId].allowFarUse and (playerPosition:getDistance(Tile(tilePosition):getItemById(dummyId):getPosition()) > 1) then
+		player:sendTextMessage(MESSAGE_FAILURE, "Get closer to the dummy.")
+		leaveExerciseTraining(playerId)
+		return false
+	end
+
 	if not dummies[dummyId] then
 		return false
 	end
@@ -135,7 +141,8 @@ local function exerciseTrainingEvent(playerId, tilePosition, weaponId, dummyId)
 		player:addSkillTries(skillId, math.floor((7.2 + 0.5) * dummyRate))
 
 		--Exibir status do treino
-		local trainingInfo = "Current skill level: ".. player:getSkillLevel(skillId) .." with ".. player:getSkillPercent(skillId) .."% to ".. player:getSkillLevel(skillId) + 1 .."."
+		local skillPercent = string.format("%.2f", ((player:getSkillTries(skillId) * 100) / player:getVocation():getRequiredSkillTries(skillId, player:getSkillLevel(skillId) + 1)))
+		local trainingInfo = "Current skill level: ".. player:getSkillLevel(skillId) .." with ".. skillPercent .."% to ".. player:getSkillLevel(skillId) + 1 .."."
 		trainingInfo = trainingInfo .."\n ".. player:getSkillTries(skillId) .." / ".. player:getVocation():getRequiredSkillTries(skillId, player:getSkillLevel(skillId) + 1) .." to raise the skill to ".. player:getSkillLevel(skillId) + 1 .."."
 		player:sendTextMessage(MESSAGE_FAILURE, trainingInfo)
 	end
